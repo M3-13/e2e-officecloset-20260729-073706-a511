@@ -74,11 +74,12 @@ Das Frontend startet auf http://localhost:5173 und proxied API-Anfragen an `/api
 | Methode | Pfad | Beschreibung |
 |---|---|---|
 | `GET` | `/api/health` | Health-Check (Returns `{"status": "ok"}`) |
+| `POST` | `/api/auth/register` | Registrierung (Body: `{email, username, password}`) → 201 |
+| `POST` | `/api/auth/login` | Login (Body: `{email, password}`) → setzt Session-Cookie |
+| `POST` | `/api/auth/logout` | Logout → löscht Session-Cookie |
+| `GET` | `/api/auth/me` | Aktueller Benutzer (Session erforderlich) |
 
 Weitere Endpunkte werden in nachfolgenden Sprints implementiert:
-- `POST /auth/register` – Registrierung
-- `POST /auth/login` – Login
-- `POST /auth/logout` – Logout
 - `GET/POST /api/clothing` – Kleidungsstücke auflisten/anlegen
 - `PUT/DELETE /api/clothing/{id}` – Kleidungsstück bearbeiten/löschen
 - `GET/POST /api/outfits` – Outfits auflisten/anlegen

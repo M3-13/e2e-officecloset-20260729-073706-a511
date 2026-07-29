@@ -1,11 +1,62 @@
-import { useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
-
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
+import api from './api/client';
 import Login from './views/Login';
 import OutfitCreator from './views/OutfitCreator';
 import Outfits from './views/Outfits';
 import Wardrobe from './views/Wardrobe';
+
+const AuthContext = createContext(null);
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get('/auth/me')
+      .then((data) => setUser(data))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const me = await api.get('/auth/me');
+      setUser(me);
+    } catch {
+      setUser(null);
+    }
+  }, []);
+
+  const login = useCallback(async (email, password) => {
+    await api.post('/auth/login', { email, password });
+    await refreshUser();
+    navigate('/wardrobe');
+  }, [navigate, refreshUser]);
+
+  const register = useCallback(async (email, username, password) => {
+    await api.post('/auth/register', { email, username, password });
+    await refreshUser();
+    navigate('/wardrobe');
+  }, [navigate, refreshUser]);
+
+  const logout = useCallback(async () => {
+    await api.post('/auth/logout');
+    setUser(null);
+    navigate('/');
+  }, [navigate]);
+
+  return (
+    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, register, logout, refreshUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
 
 const styles = {
   container: {
@@ -79,6 +130,18 @@ const styles = {
     border: '1px solid #3A2F2C',
     transition: 'all 0.2s',
   },
+  logoutBtn: {
+    color: '#8E1B22',
+    textDecoration: 'none',
+    fontSize: '15px',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    border: '1px solid #8E1B22',
+    cursor: 'pointer',
+    background: 'none',
+    fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+    transition: 'all 0.2s',
+  },
   redCarpet: {
     width: '100%',
     height: '4px',
@@ -89,15 +152,22 @@ const styles = {
     color: '#9A8F86',
     fontSize: '16px',
   },
+  userBadge: {
+    fontSize: '13px',
+    color: '#C9A65A',
+    marginTop: '12px',
+  },
 };
 
 function HomePage() {
+  const { user, isAuthenticated, logout } = useAuth();
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/health`, { credentials: 'include' })
+    const base = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+    fetch(`${base}/api/health`, { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         setStatus(data.status);
@@ -114,6 +184,9 @@ function HomePage() {
       <div style={styles.header}>
         <h1 style={styles.title}>Glamour Closet</h1>
         <p style={styles.subtitle}>Red-Carpet Kleiderschrank-Manager</p>
+        {isAuthenticated && user && (
+          <div style={styles.userBadge}>Angemeldet als {user.username}</div>
+        )}
         <div style={styles.redCarpet} />
       </div>
       <div style={styles.main}>
@@ -128,10 +201,21 @@ function HomePage() {
           )}
         </div>
         <div style={styles.nav}>
-          <a href="/login" style={styles.link}>Anmelden</a>
-          <a href="/wardrobe" style={styles.link}>Garderobe</a>
-          <a href="/outfit-creator" style={styles.link}>Outfit-Creator</a>
-          <a href="/outfits" style={styles.link}>Outfits</a>
+          {isAuthenticated ? (
+            <>
+              <a href="/wardrobe" style={styles.link}>Garderobe</a>
+              <a href="/outfit-creator" style={styles.link}>Outfit-Creator</a>
+              <a href="/outfits" style={styles.link}>Outfits</a>
+              <button onClick={logout} style={styles.logoutBtn}>Abmelden</button>
+            </>
+          ) : (
+            <>
+              <a href="/login" style={styles.link}>Anmelden</a>
+              <a href="/wardrobe" style={styles.link}>Garderobe</a>
+              <a href="/outfit-creator" style={styles.link}>Outfit-Creator</a>
+              <a href="/outfits" style={styles.link}>Outfits</a>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -140,13 +224,15 @@ function HomePage() {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/wardrobe" element={<Wardrobe />} />
-      <Route path="/outfit-creator" element={<OutfitCreator />} />
-      <Route path="/outfits" element={<Outfits />} />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/wardrobe" element={<Wardrobe />} />
+        <Route path="/outfit-creator" element={<OutfitCreator />} />
+        <Route path="/outfits" element={<Outfits />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 
