@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 import Login from './views/Login';
 import OutfitCreator from './views/OutfitCreator';
 import Outfits from './views/Outfits';
@@ -95,7 +97,7 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/health', { credentials: 'include' })
+    fetch(`${API_BASE}/api/health`, { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         setStatus(data.status);

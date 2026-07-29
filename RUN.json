@@ -28,7 +28,7 @@
       "port_env": "PORT",
       "ready_log": "Local:",
       "env": {
-        "VITE_API_BASE": { "dev": "/api" }
+        "VITE_API_BASE": { "dev": "http://localhost:8000" }
       }
     }
   ]
