@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Login from './views/Login';
 import OutfitCreator from './views/OutfitCreator';
@@ -89,11 +90,11 @@ const styles = {
 };
 
 function HomePage() {
-  const [status, setStatus] = React.useState(null);
-  const [error, setError] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetch('/api/health', { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
