@@ -1,11 +1,16 @@
 import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
-os.environ.setdefault("SESSION_SECRET", "test-secret-for-pytest")
+os.environ["SESSION_SECRET"] = "test-secret-for-pytest"
 
 import pytest
 
 from backend.database import Base, _engine, init_db
+
+
+@pytest.fixture(autouse=True)
+def _session_secret():
+    os.environ["SESSION_SECRET"] = "test-secret-for-pytest"
 
 
 @pytest.fixture(autouse=True)

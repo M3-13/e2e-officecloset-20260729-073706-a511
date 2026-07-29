@@ -14,6 +14,10 @@ COOKIE_NAME = "session"
 SESSION_MAX_AGE = timedelta(days=7)
 
 
+def _cookie_secure() -> bool:
+    return os.environ.get("ENVIRONMENT", "").lower() == "production"
+
+
 def _get_secret() -> str:
     secret = os.environ.get("SESSION_SECRET")
     if not secret:
