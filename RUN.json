@@ -1,0 +1,35 @@
+{
+  "runcontract": 1,
+  "services": [
+    {
+      "name": "api",
+      "dir": ".",
+      "stack": "python",
+      "kind": "server",
+      "install": [["${python}", "-m", "pip", "install", "-q", "-r", "backend/requirements.txt"]],
+      "start": ["${python}", "-m", "uvicorn", "backend.main:app", "--port", "${PORT}"],
+      "port": 8000,
+      "port_env": "PORT",
+      "health": { "path": "/api/health", "expect_status": [200] },
+      "env": {
+        "DATABASE_URL": { "dev": "sqlite:///./dev.db" },
+        "UPLOAD_DIR": { "dev": "./uploads" },
+        "SESSION_SECRET": { "generate": "hex", "bytes": 32 }
+      }
+    },
+    {
+      "name": "frontend",
+      "dir": "frontend",
+      "stack": "node",
+      "kind": "server",
+      "install": [["npm", "ci"]],
+      "start": ["npm", "run", "dev"],
+      "port": 5173,
+      "port_env": "PORT",
+      "ready_log": "Local:",
+      "env": {
+        "VITE_API_BASE": { "dev": "http://localhost:8000" }
+      }
+    }
+  ]
+}

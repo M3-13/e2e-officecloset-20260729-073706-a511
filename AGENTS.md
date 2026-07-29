@@ -58,6 +58,8 @@ the full sprint scope, then implement YOUR ticket.
 
    ```python
    from fastapi.testclient import TestClient
+
+
    def test_register_and_login():
        c = TestClient(app)
        assert c.post("/auth/register", json={...}).status_code == 201
@@ -334,9 +336,9 @@ React + Flask, etc.), CORS MUST be configured from the start:
   app.add_middleware(
       CORSMiddleware,
       allow_origins=[
-          "http://localhost:5173",   # Vite default
-          "http://localhost:5174",   # Vite fallback
-          "http://localhost:3000",   # CRA / Next.js
+          "http://localhost:5173",  # Vite default
+          "http://localhost:5174",  # Vite fallback
+          "http://localhost:3000",  # CRA / Next.js
       ],
       allow_credentials=True,
       allow_methods=["*"],
