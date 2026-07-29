@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -17,15 +18,20 @@ async def lifespan(app: FastAPI):
     yield
 
 
+def _get_cors_origins() -> list[str]:
+    raw = os.environ.get(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://localhost:5174,http://localhost:3000",
+    )
+    return [o.strip() for o in raw.split(",") if o.strip()]
+
+
 app = FastAPI(title="Glamour Closet", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:3000",
-    ],
+    allow_origins=_get_cors_origins(),
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
