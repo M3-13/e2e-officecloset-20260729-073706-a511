@@ -36,3 +36,4 @@ ignore = [
 # `test_GET_health` blocked the merge on a rule this line exists to relax.
 "**/tests/**" = ["N802", "N803"]
 "**/test_*.py" = ["N802", "N803"]
+"**/routers/*.py" = ["B008"]

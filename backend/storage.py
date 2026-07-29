@@ -25,14 +25,25 @@ def validate_image(content_type: str, filename: str, size: int) -> None:
         raise ValueError(f"File too large: {size} bytes. Maximum: {MAX_FILE_SIZE} bytes")
 
 
+def _sanitize_filename(filename: str) -> str:
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise ValueError("Invalid filename: path traversal detected")
+    return filename
+
+
 def save_upload(file_content: bytes, original_filename: str, content_type: str) -> str:
     validate_image(content_type, original_filename, len(file_content))
 
+    _sanitize_filename(original_filename)
+
     ext = Path(original_filename).suffix.lower()
     safe_name = f"{uuid.uuid4().hex}{ext}"
-    upload_dir = Path(get_upload_dir())
+    upload_dir = Path(get_upload_dir()).resolve()
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    target = upload_dir / safe_name
+    target = (upload_dir / safe_name).resolve()
+    if not str(target).startswith(str(upload_dir) + os.sep):
+        raise ValueError("Path traversal detected: resolved path outside upload directory")
+
     target.write_bytes(file_content)
     return safe_name
